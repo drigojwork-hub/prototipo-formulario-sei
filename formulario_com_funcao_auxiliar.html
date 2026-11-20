@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório de Fiscalização — Versão 2 · com função auxiliar de entrada de dados</title>
+<style>
+  :root{
+    --cinza-secao: rgb(204,204,204);
+    --cinza-claro: #f2f2f2;
+    --azul-inst: #0b5394;
+    --verde-inst: #2e7d32;
+    --borda: #999;
+    --borda-clara: #ccc;
+    --erro: #b3261e;
+    --largura-doc: 1200px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family: Calibri, Arial, "Segoe UI", sans-serif;
+    background:#e9e9e9;
+    margin:0;
+    padding:24px 12px 80px;
+    color:#1a1a1a;
+  }
+  .barra-proto{
+    max-width: var(--largura-doc);
+    margin: 0 auto 14px;
+    background:#1a1a1a;
+    color:#fff;
+    padding:10px 16px;
+    border-radius:6px;
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .barra-proto strong{color:#8fd694;}
+  .barra-proto .botoes{display:flex; gap:8px;}
+  .barra-proto button{
+    background:#2e7d32;
+    color:#fff;
+    border:none;
+    padding:7px 12px;
+    border-radius:4px;
+    font-size:12.5px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .barra-proto button.secundario{background:#3a3a3a;}
+  .barra-proto button:hover{filter:brightness(1.12);}
+
+  .folha{
+    max-width: var(--largura-doc);
+    margin: 0 auto;
+    background:#fff;
+    box-shadow:0 1px 6px rgba(0,0,0,.25);
+    padding:26px 30px 40px;
+  }
+
+  table.doc{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:14px;
+  }
+  table.doc td, table.doc th{
+    border:1px solid var(--borda);
+    padding:6px 8px;
+    vertical-align:top;
+    font-size:13px;
+  }
+
+  tr.secao td{
+    background: var(--cinza-secao);
+    font-weight:700;
+    text-align:center;
+    font-size:13px;
+    letter-spacing:.2px;
+  }
+  td.rotulo{
+    background:var(--cinza-secao);
+    font-weight:600;
+    width:190px;
+    font-size:12.5px;
+  }
+  .req{ color:var(--erro); font-weight:700; }
+
+  
+  input, select, textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:13px;
+    padding:5px 6px;
+    border:1px solid var(--borda-clara);
+    border-radius:3px;
+    background:#fff;
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:2px solid var(--azul-inst);
+    outline-offset:1px;
+  }
+  input:required:invalid, select:required:invalid{
+    border-color:#e0b0ad;
+  }
+  .celula-campo{ min-width:180px; }
+  .linha-dupla{ display:flex; gap:6px; }
+  .linha-dupla > *{ flex:1; }
+  .nota-campo{ font-size:10.5px; color:#666; margin-top:2px; }
+
+  .radio-linha{ display:flex; gap:14px; align-items:center; font-size:12.5px; margin-bottom:4px; }
+  .radio-linha label{ display:flex; gap:4px; align-items:center; font-weight:400; }
+
+  .coord-grid{ display:flex; gap:6px; }
+  .coord-grid > div{ flex:1; }
+  .coord-grid label{ font-size:10.5px; color:#555; display:block; margin-bottom:2px; }
+
+  .check-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:4px 14px;
+  }
+  .check-item{ display:flex; align-items:flex-start; gap:6px; font-size:12px; }
+  .check-item input[type="checkbox"]{ width:auto; margin-top:2px; }
+
+  .termo-linha{
+    display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12.5px;
+  }
+  .termo-linha input[type="checkbox"]{ width:auto; flex:none; }
+  .termo-linha .lbl-termo{ flex:0 0 190px; }
+  .termo-linha input[type="text"]{ flex:1; }
+  .termo-linha input:disabled{ background:#f2f2f2; color:#999; }
+
+  .par-linha{ display:flex; gap:6px; margin-bottom:6px; }
+  .par-linha input:first-child{ flex:2; }
+  .par-linha input:last-child{ flex:1; }
+
+  .multa-bloco{ display:flex; gap:6px; }
+  .multa-bloco select{ flex:1; }
+  .multa-bloco input{ flex:1.4; }
+
+  .rodape-nota{
+    font-size:11px; color:#444; margin-top:6px;
+  }
+
+  .selo-diretoria{
+    display:inline-block;
+    background:var(--azul-inst);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:10px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+
+  .chips-container{
+    display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; min-height:26px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#e8f0fe; border:1px solid #b6cdfb; color:#0b5394;
+    border-radius:14px; padding:4px 8px 4px 12px; font-size:12px; font-weight:600;
+  }
+  .chip button{
+    width:16px; height:16px; flex:none; padding:0; border-radius:50%;
+    background:#0b5394; color:#fff; border:none; font-size:11px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .chip button:hover{ background:var(--erro); }
+
+  .equipe-linha{ display:flex; gap:6px; margin-bottom:6px; align-items:center; }
+  .equipe-linha .campo-nome{ flex:2; }
+  .equipe-linha .campo-matricula{ flex:1; }
+  .btn-add-equipe{
+    width:auto; background:#fff; color:var(--azul-inst); border:1px dashed var(--azul-inst);
+    border-radius:4px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; margin-top:2px;
+  }
+  .btn-add-equipe:hover{ background:var(--azul-inst); color:#fff; }
+  .btn-remover-equipe{
+    width:26px; flex:none; background:#fff; color:var(--erro); border:1px solid var(--erro);
+    border-radius:4px; font-size:14px; cursor:pointer; padding:5px 0;
+  }
+
+  
+  .contexto-sei td.ctx-valor b{ background:#fff8d6; border:1px dashed #c9a400; border-radius:3px; padding:1px 6px; font-family:Consolas, monospace; font-size:13px; }
+  .contexto-sei .ctx-nota{ font-size:11.5px; color:#555; padding:6px 10px; background:#fafafa; }
+  .bloco-externo{ border:2px dashed #8a8a8a; border-radius:6px; background:#f7f7f5; padding:12px 14px; margin:4px 0 22px; }
+  .bloco-externo h3{ margin:0 0 4px; font-size:13px; letter-spacing:.3px; color:#444; }
+  .bloco-externo .sub{ font-size:11.5px; color:#666; margin-bottom:10px; }
+  .bloco-externo .autos-linha label{ font-size:12px; font-weight:700; color:#444; }
+  .separador-form{ text-align:center; font-size:11px; color:#888; letter-spacing:.4px; margin:0 0 12px; }
+  .nota-integracao{ font-size:11.5px; color:#444; background:#fffbea; border:1px solid #e6d58a; border-left:4px solid #c9a400; border-radius:3px; padding:8px 10px; margin-top:8px; line-height:1.45; }
+  .nota-integracao .tag-demo{ display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.3px; color:#7a5d00; background:#f5e7a6; border-radius:3px; padding:1px 6px; margin-right:6px; }
+  .nota-integracao .alerta{ display:block; margin-top:6px; color:#7a4a00; }
+  .bloco-autos{ outline:2px solid #2e7d32; outline-offset:-1px; }
+  .bloco-autos tr.secao td{ background:#d9ead9; }
+  .autos-linha{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .autos-linha input{ max-width:220px; }
+  .btn-acao{
+    width:auto; background:var(--azul-inst); color:#fff; border:none; border-radius:4px;
+    padding:6px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .btn-acao:hover{ filter:brightness(1.12); }
+  .btn-acao.sec{ background:#fff; color:var(--azul-inst); border:1px solid var(--azul-inst); }
+  .status-autos{ font-size:11.5px; margin-top:6px; color:#555; }
+  .status-autos.ok{ color:var(--verde-inst); font-weight:600; }
+  .status-autos.erro{ color:var(--erro); font-weight:600; }
+  .veio-autos{ background:#eef5ee !important; border-color:#9cc79e !important; }
+  .selo-autos{
+    display:inline-block; font-size:10px; font-weight:700; color:#2e7d32; background:#e3f1e3;
+    border:1px solid #9cc79e; border-radius:9px; padding:0 7px; margin-left:6px; vertical-align:middle;
+  }
+
+  
+  .coord-acoes{ display:flex; gap:8px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+  .coord-origem{ font-size:10.5px; color:#555; }
+  .modal-fundo{ position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:1000; }
+  .modal{ background:#fff; width:min(980px,94vw); border-radius:8px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  .modal-topo{ display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#1a1a1a; color:#fff; font-size:13.5px; font-weight:600; }
+  .modal-topo button{ width:auto; background:#555; color:#fff; border:none; border-radius:3px; padding:3px 10px; cursor:pointer; }
+  #mapa{ height:520px; background:#ddd; }
+  
+  .acoes-finais{ margin-top:22px; padding:16px 18px; border-top:3px solid var(--cinza-secao); background:#fafafa;
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+  .acoes-finais .nota{ font-size:12.5px; color:#555; max-width:560px; }
+  .acoes-finais .botoes{ display:flex; gap:10px; }
+  .btn-verificar{ background:#fff; color:#1f2d3d; border:1px solid #8a8a8a; border-radius:5px; padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer; }
+  .btn-enviar{ background:#1d6378; color:#fff; border:none; border-radius:5px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer; }
+  .btn-verificar:hover, .btn-enviar:hover{ filter:brightness(1.08); }
+  .btn-enviar:disabled{ background:#8aa9b3; cursor:default; }
+  .status-envio{ display:none; margin-top:12px; padding:10px 14px; border-radius:4px; font-size:13px; }
+  .status-envio.ok{ display:block; background:#e8f5e9; border:1px solid #9ccc9f; color:#1b5e20; }
+  .status-envio.erro{ display:block; background:#fdecea; border:1px solid #f1aeab; color:var(--erro); }
+  
+  .modal.pequeno{ width:min(560px,94vw); }
+  .modal-corpo{ padding:16px 18px; font-size:13.5px; line-height:1.45; }
+  .modal-corpo .destaque{ background:#f2f6f8; border-left:4px solid #1d6378; padding:8px 12px; margin:10px 0; }
+  .passos-envio{ list-style:none; padding:0; margin:10px 0 0; }
+  .passos-envio li{ padding:6px 0 6px 28px; position:relative; color:#888; }
+  .passos-envio li::before{ content:"○"; position:absolute; left:6px; }
+  .passos-envio li.ativo{ color:#1a1a1a; font-weight:600; }
+  .passos-envio li.ativo::before{ content:"…"; }
+  .passos-envio li.feito{ color:#1b5e20; }
+  .passos-envio li.feito::before{ content:"✓"; }
+  .passos-envio code{ font-family:Consolas, monospace; font-size:12px; color:#555; font-weight:400; }
+  
+  .texto-livre-rotulo{ margin-top:22px; font-weight:700; font-size:13px; }
+  .texto-livre-rotulo span{ font-weight:400; color:#555; }
+  .texto-livre-nota{ font-size:12px; color:#555; background:#f4f7fb; border-left:4px solid var(--azul-inst); padding:8px 12px; margin:6px 0 8px; }
+  .texto-livre{ border:1px solid var(--borda-clara); border-radius:4px; overflow:hidden; }
+  .texto-livre-barra{ background:var(--cinza-claro); border-bottom:1px solid var(--borda-clara); padding:6px 8px; display:flex; gap:6px; align-items:center; }
+  .texto-livre-barra button{ width:auto; padding:4px 10px; border:1px solid #bbb; background:#fff; border-radius:3px; cursor:pointer; }
+  .texto-livre-barra span{ margin-left:auto; font-size:10.5px; color:#777; }
+  #texto_relatorio{ min-height:300px; padding:16px 18px; font-size:13px; line-height:1.5; }
+  #texto_relatorio .tl-titulo{ text-align:center; font-weight:700; }
+  .modal-rodape{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 14px; font-size:12.5px; border-top:1px solid #ddd; }
+  .modal-rodape .coord-lida{ font-family:Consolas, monospace; font-size:13px; }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+
+  <div class="barra-proto">
+    <div>Relatório de Fiscalização — formulário estruturado <strong>(exemplo com dados fictícios; listas reduzidas e limites geográficos meramente ilustrativos)</strong><br><span style="font-size:12px;">Versão 2 · com função auxiliar de entrada de dados — <a href="index.html" style="color:inherit;">ver versão 1, requisitos principais</a></span></div>
+    <div class="botoes">
+      <button type="button" class="secundario" onclick="mostrarJSON()">Ver dados estruturados (JSON)</button>
+    </div>
+  </div>
+
+  <div class="folha">
+    <table class="doc contexto-sei">
+      <tbody><tr class="secao"><td colspan="4">IDENTIFICAÇÃO DO DOCUMENTO · CAMPOS DINÂMICOS DO SEI</td></tr>
+      <tr>
+        <td class="rotulo" style="width:150px;">PROCESSO Nº</td>
+        <td class="ctx-valor"><b id="ctx_processo">00000-00000000/2026-00</b></td>
+        <td class="rotulo" style="width:110px;">UNIDADE</td>
+        <td class="ctx-valor"><b id="ctx_unidade">UNIDADE-A</b></td>
+      </tr>
+      <tr><td colspan="4" class="ctx-nota">Valores ilustrativos. Como o documento é produzido dentro do próprio SEI, o processo e a unidade já são conhecidos pelo sistema: em um modelo de documento, ficam em seção própria, preenchida automaticamente por campos dinâmicos, sem digitação pelo usuário.</td></tr>
+      </tbody></table>
+    <div class="bloco-externo">
+      <h3>FUNÇÃO AUXILIAR · CONSULTA A FONTE DE DADOS EXTERNA (HIPOTÉTICO)</h3>
+      <div class="sub">Bloco separado do formulário principal, apenas para ilustração. Não faz parte dos dados do relatório.</div>
+      <div class="autos-linha">
+        <label for="campo_id_externo">Identificador do registro na fonte externa</label>
+        <input type="text" id="campo_id_externo" placeholder="Digite 1234" maxlength="20" oninput="if(this.value.trim()==='1234') consultarSistemaExterno()" onkeydown="if(event.key==='Enter'){event.preventDefault();consultarSistemaExterno();}">
+        <button type="button" class="btn-acao" onclick="consultarSistemaExterno()">Consultar (simulação)*</button>
+      </div>
+      <div id="status_autos" class="status-autos"><b>Para testar, digite 1234.</b> A seção QUALIFICAÇÃO DO FISCALIZADO será preenchida automaticamente. Consulta simulada: nenhum sistema externo é acessado, e os campos preenchidos continuam editáveis.</div>
+      <div class="nota-integracao"><span class="tag-demo">EXEMPLO · PONTO DE ENTRADA DE DADOS (FUNÇÃO AUXILIAR)</span>Função auxiliar inspirada em uma situação real: determinadas informações utilizadas no relatório podem já estar disponíveis em uma fonte de dados externa ao SEI. O usuário informa o identificador do registro nessa fonte e, a partir de uma consulta, os campos correspondentes do formulário (nesta demonstração, os relativos à qualificação do fiscalizado) são preenchidos automaticamente, permanecendo editáveis.
+        <span style="display:block;margin-top:6px;">Esse exemplo pode ter relevância para a discussão de um mecanismo genérico de consulta a fontes externas de dados, pelo qual a informação obtida a partir de um identificador possa preencher automaticamente um ou mais campos do documento, evitando a redigitação de dados já disponíveis em outros sistemas.</span>
+        <span class="alerta">* A implementação dependeria da viabilidade técnica e institucional de acesso à fonte externa, por meio de API, webservice ou outro mecanismo de integração. Nesta demonstração, a consulta e o preenchimento são apenas simulados. É uma função auxiliar, não um requisito central da proposta.</span></div>
+    </div>
+    <div class="separador-form">— FORMULÁRIO DO RELATÓRIO —</div>
+    <form id="formRel" novalidate="">
+
+      <table class="doc">
+        <tbody><tr class="secao"><td colspan="4">TIPO DE RELATÓRIO <span class="req">*</span></td></tr>
+        <tr>
+          <td colspan="4" style="padding:10px 12px;">
+            <input type="hidden" name="unidade" id="campo_diretoria" value="">
+            <input type="hidden" name="processo_sei" id="campo_processo_sei" value="">
+            <div class="radio-linha" style="gap:26px; font-size:13px;">
+              <label><input type="radio" name="tipo_relatorio" value="com" required="" onchange="atualizarCamposDependentes()"> Relatório <strong>com</strong> infração</label>
+              <label><input type="radio" name="tipo_relatorio" value="sem" onchange="atualizarCamposDependentes()"> Relatório <strong>sem</strong> infração</label>
+            </div>
+          </td>
+        </tr>
+      </tbody></table>
+
+
+      <table class="doc">
+        <tbody><tr class="secao"><td colspan="4">QUALIFICAÇÃO DO FISCALIZADO</td></tr>
+
+        <tr>
+          <td class="rotulo">TIPO DE PESSOA <span class="req">*</span></td>
+          <td class="celula-campo" colspan="3">
+            <div class="radio-linha">
+              <label><input type="radio" name="tipo_doc" value="PF" checked="" onchange="ajustarMascaraDocumento()"> Pessoa física (CPF)</label>
+              <label><input type="radio" name="tipo_doc" value="PJ" onchange="ajustarMascaraDocumento()"> Pessoa jurídica (CNPJ)</label>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="rotulo">NOME / RAZÃO SOCIAL <span class="req">*</span></td>
+          <td class="celula-campo"><input type="text" name="nome_razao_social" id="campo_nome_razao_social" required=""></td>
+          <td class="rotulo">NOME FANTASIA<br><span style="font-weight:400; font-size:10.5px;">(se houver)</span></td>
+          <td class="celula-campo"><input type="text" name="nome_fantasia" id="campo_nome_fantasia" disabled=""></td>
+        </tr>
+        <tr>
+          <td class="rotulo">CPF / CNPJ <span class="req">*</span></td>
+          <td class="celula-campo">
+            <input type="text" name="documento" id="campo_documento" required="" placeholder="000.000.000-00" maxlength="14" oninput="mascararDocumento(this)">
+          </td>
+          <td class="celula-campo" colspan="2">
+            <div class="nota-campo" style="margin-bottom:2px;">TELEFONE / E-MAIL</div>
+            <input type="tel" name="telefone" placeholder="(00) 00000-0000" maxlength="15" oninput="mascararTelefone(this)" style="margin-bottom:5px;">
+            <input type="email" name="email" placeholder="nome@exemplo.com">
+          </td>
+        </tr>
+        <tr>
+          <td class="rotulo">ENDEREÇO</td>
+          <td class="celula-campo"><input type="text" name="endereco_fiscalizado" id="campo_endereco_fiscalizado" placeholder="Rua, quadra, conjunto, casa, cidade - UF" oninput="sincronizarLocalComEndereco()"></td>
+          <td class="rotulo">CEP</td>
+          <td class="celula-campo"><input type="text" name="cep_fiscalizado" id="campo_cep_fiscalizado" placeholder="00000-000" maxlength="9" style="max-width:120px;" oninput="mascararCEP(this); sincronizarLocalComEndereco();"></td>
+        </tr>
+      </tbody></table>
+
+      <table class="doc">
+        <tbody><tr class="secao"><td colspan="4">AÇÃO FISCAL</td></tr>
+
+        <tr>
+          <td class="rotulo">DATA DA AÇÃO <span class="req">*</span></td>
+          <td class="celula-campo" colspan="3">
+            <div style="display:flex; gap:6px; align-items:center; max-width:280px;">
+              <input type="date" id="input_data_acao">
+              <button type="button" class="btn-add-equipe" onclick="adicionarDataAcao()" style="white-space:nowrap;">+ Adicionar</button>
+            </div>
+            <div id="chips_datas_acao" class="chips-container"></div>
+            <select name="datas_acao_fiscal" id="sel_datas_acao_envio" multiple="" style="display:none;"></select>
+            <div class="nota-campo">Adicione uma ou mais datas.</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="celula-campo" colspan="4" style="padding:8px 12px; background:#fafafa;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#333; cursor:pointer;">
+              <input type="checkbox" id="chk_mesmo_endereco" onchange="alternarLocalMesmoEndereco()" style="width:auto; margin:0;">
+              O local da ação fiscal é o mesmo do endereço do fiscalizado.
+            </label>
+          </td>
+        </tr>
+        <tr>
+          <td class="rotulo">LOCAL DA AÇÃO FISCAL <span class="req">*</span></td>
+          <td class="celula-campo"><input type="text" name="local_acao_fiscal" id="campo_local_acao_fiscal" required=""></td>
+          <td class="rotulo">CEP<br><span style="font-weight:400; font-size:9.5px;">(quando houver)</span></td>
+          <td class="celula-campo"><input type="text" name="cep_local_acao_fiscal" id="campo_cep_local" placeholder="00000-000" maxlength="9" style="max-width:120px;" oninput="mascararCEP(this)"></td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">COORDENADAS GEOGRÁFICAS <span class="req">*</span><br><span style="font-weight:400; font-size:10.5px;">(graus decimais)</span></td>
+          <td class="celula-campo">
+            <div class="coord-grid">
+              <div>
+                <label>Latitude</label>
+                <input type="number" name="lat" step="0.000001" min="-34" max="5.3" placeholder="-00.000000" required="">
+              </div>
+              <div>
+                <label>Longitude</label>
+                <input type="number" name="lon" step="0.000001" min="-74" max="-34" placeholder="-00.000000" required="">
+              </div>
+            </div>
+            <div class="coord-acoes">
+              <button type="button" class="btn-acao" onclick="abrirMapa()">&#128205; Marcar no mapa</button>
+              <span id="coord_origem" class="coord-origem">Clique no local da fiscalização ou digite as coordenadas.</span>
+            </div>
+            <div class="nota-campo" style="margin-top:4px;">Validação geográfica: na criação do modelo do documento, o órgão pode definir um retângulo envolvente (<i>bounding box</i>) correspondente à sua área de atuação; coordenadas fora desse retângulo são sinalizadas. Neste exemplo, os limites adotados são ilustrativos (território nacional).</div>
+            </div>
+          </td>
+          <td class="rotulo">UF / MUNICÍPIO <span class="req">*</span></td>
+          <td class="celula-campo">
+            <select name="uf" id="sel_uf" required="" onchange="atualizarMunicipios()">
+              <option value="">UF...</option>
+              <option value="EA">Estado Exemplo A (EA)</option>
+              <option value="EB">Estado Exemplo B (EB)</option>
+              <option value="EC">Estado Exemplo C (EC)</option>
+            </select>
+            <select name="municipio" id="sel_municipio" required="" style="margin-top:5px;">
+              <option value="">Escolha a UF primeiro</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">TEMÁTICA <span class="req">*</span></td>
+          <td class="celula-campo" colspan="3">
+            <select name="tematica" id="sel_tematica" required="" onchange="atualizarCamposDependentes()" style="max-width:300px;">
+              <option value="">Selecione...</option>
+              <option>Ruído</option>
+              <option>Vegetação</option>
+              <option>Resíduos</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">ASSUNTO <span class="req">*</span></td>
+          <td class="celula-campo">
+            <select name="assunto" id="sel_assunto" required="" onchange="alternarOutros('sel_assunto','outros_assunto')"><option value="">Escolha a Temática e o Tipo de Relatório primeiro</option></select>
+            <input type="text" name="assunto_outros" id="outros_assunto" placeholder="Especifique o assunto" style="display:none; margin-top:5px;">
+          </td>
+          <td class="rotulo">ATIVIDADE <span class="req">*</span></td>
+          <td class="celula-campo">
+            <select name="atividade" id="sel_atividade" required="" onchange="alternarOutros('sel_atividade','outros_atividade')"><option value="">Escolha a Temática primeiro</option></select>
+            <input type="text" name="atividade_outros" id="outros_atividade" placeholder="Especifique a atividade" style="display:none; margin-top:5px;">
+          </td>
+        </tr>
+
+<tr>
+          <td class="rotulo">ORIGEM DA DEMANDA <span class="req">*</span></td>
+          <td class="celula-campo">
+            <select name="origem_demanda" id="sel_origem_demanda" required="" onchange="atualizarSubcampoOrigem()">
+              <option value="">Selecione...</option>
+<optgroup label="Interna">
+<option>Órgão/Própria unidade</option><option>Órgão/Outra unidade de fiscalização</option><option>Órgão/Outra Unidade</option>
+</optgroup>
+<optgroup label="Externa">
+<option>Ouvidoria</option><option>Ministério Público</option><option>Prefeitura municipal</option><option>Outros</option>
+</optgroup>
+            </select>
+            <div id="subcampo_ra_origem" style="display:none; margin-top:5px;">
+              <select name="origem_demanda_municipio" id="sel_origem_demanda_ra"><option value="">Selecione o município...</option></select>
+            </div>
+            <div id="subcampo_unidade_origem" style="display:none; margin-top:5px;">
+              <select name="origem_demanda_unidade">
+                <option value="">Selecione a unidade demandante...</option>
+                <option>Unidade X</option><option>Unidade Y</option>
+              </select>
+            </div>
+            <input type="text" name="origem_demanda_outros" id="outros_origem_demanda" placeholder="Especifique o órgão" style="display:none; margin-top:5px;">
+          </td>
+          <td class="rotulo">DOC. ORIGEM DA DEMANDA <span class="req">*</span></td>
+          <td class="celula-campo">
+            <select name="tipo_instrumento" required="">
+              <option value="">Tipo...</option>
+              <option>Processo SEI</option><option>Ofício</option><option>Manifestação de Ouvidoria</option><option>Outro</option>
+            </select>
+            <input type="text" name="doc_origem_demanda" required="" placeholder="Nº do instrumento" style="margin-top:5px;">
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">PARTICIPAÇÃO EXTERNA</td>
+          <td class="celula-campo" colspan="3">
+            <select id="part_adicionar" onchange="adicionarChipParticipacao(this)">
+              <option value="">Selecione um órgão para adicionar...</option>
+<optgroup label="Interna">
+<option value="Órgão/Outra unidade de fiscalização">Órgão/Outra unidade de fiscalização</option><option value="Órgão/Outra Unidade">Órgão/Outra Unidade</option>
+</optgroup>
+<optgroup label="Externa">
+<option value="Ouvidoria">Ouvidoria</option><option value="Ministério Público">Ministério Público</option><option value="Prefeitura municipal">Prefeitura municipal</option>
+</optgroup>
+            </select>
+            <div id="chips_participacao" class="chips-container"></div>
+            <select name="participacao_externa" id="sel_participacao_envio" multiple="" style="display:none;"></select>
+            <div id="subcampo_ra_participacao" style="display:none; margin-top:5px;">
+              <div class="nota-campo" style="margin-bottom:2px;">Município(s) envolvido(s):</div>
+              <select name="participacao_municipio" multiple="" size="3"></select>
+            </div>
+            <input type="text" name="part_ext_outros" placeholder="Outros (texto livre)" style="margin-top:8px;">
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">SERVIDOR RESPONSÁVEL / EQUIPE <span class="req">*</span></td>
+          <td class="celula-campo" colspan="3">
+            <div id="lista_equipe">
+              <div class="equipe-linha">
+                <input type="text" class="campo-nome" name="servidor_1_nome" placeholder="Nome do servidor responsável" required="">
+                <input type="text" class="campo-matricula" name="servidor_1_matricula" placeholder="Matrícula" required="">
+              </div>
+            </div>
+            <button type="button" class="btn-add-equipe" onclick="adicionarServidor()">+ Adicionar servidor à equipe</button>
+            <div class="nota-campo">Até 6 servidores. O primeiro é o servidor responsável; os demais compõem a equipe.</div>
+          </td>
+        </tr>
+      </tbody></table>
+
+      <div id="bloco_documentos_lavrados">
+      <table class="doc">
+        <tbody><tr class="secao"><td colspan="4">DOCUMENTOS LAVRADOS</td></tr>
+
+        <tr>
+          <td class="rotulo">Nº AUTO DE INFRAÇÃO <span class="req">*</span></td>
+          <td class="celula-campo"><input type="text" name="num_auto_infracao" required="" placeholder="00000/2026" maxlength="10" oninput="mascararNumeroAno(this)"></td>
+          <td class="rotulo">VALOR DA MULTA<br><span style="font-weight:400; font-size:10.5px;">(se aplicável)</span></td>
+          <td class="celula-campo">
+            <div class="multa-bloco">
+              <select name="tipo_multa" id="tipo_multa" onchange="alternarValorMulta()">
+                <option value="">—</option>
+                <option value="simples">Simples</option>
+                <option value="diaria">Diária</option>
+              </select>
+              <input type="text" name="valor_multa" id="valor_multa" placeholder="R$ 0,00" disabled="" oninput="mascararMoeda(this)">
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">DESCRIÇÃO DA INFRAÇÃO <span class="req">*</span></td>
+          <td class="celula-campo" colspan="3">
+            <textarea name="descricao_infracao" rows="3" required="" placeholder="Transcrever o campo &quot;descrição da infração&quot; do Auto de Infração"></textarea>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">PENALIDADE APLICADA <span class="req">*</span></td>
+          <td class="celula-campo" colspan="3">
+            <div class="check-grid" id="grupo_penalidades">
+              <label class="check-item"><input type="checkbox" name="penalidade" value="Advertência"> Advertência</label>
+              <label class="check-item"><input type="checkbox" name="penalidade" value="Multa simples" onchange="alternarValorMultaPorCheckbox(this)"> Multa simples</label>
+              <label class="check-item"><input type="checkbox" name="penalidade" value="Multa diária" onchange="alternarValorMultaPorCheckbox(this)"> Multa diária</label>
+              <label class="check-item"><input type="checkbox" name="penalidade" value="Apreensão"> Apreensão</label>
+              <label class="check-item"><input type="checkbox" name="penalidade" value="Embargo"> Embargo</label>
+              <label class="check-item"><input type="checkbox" name="penalidade" value="Interdição"> Interdição</label>
+            </div>
+            <div class="nota-campo" id="nota_penalidade">Selecione ao menos uma penalidade. Lista reduzida, apenas para exemplo.</div>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="rotulo">TERMOS LAVRADOS NA AÇÃO FISCAL</td>
+          <td class="celula-campo" colspan="3">
+            <div class="termo-linha">
+              <input type="checkbox" onchange="alternarTermo(this,&#39;num_apreensao&#39;)"> <span class="lbl-termo">Termo de Apreensão</span>
+              <input type="text" id="num_apreensao" name="num_apreensao" placeholder="Nº 00000/2026" disabled="" oninput="mascararNumeroAno(this)">
+            </div>
+            <div class="termo-linha">
+              <input type="checkbox" onchange="alternarTermo(this,&#39;num_embargo&#39;)"> <span class="lbl-termo">Termo de Embargo</span>
+              <input type="text" id="num_embargo" name="num_embargo" placeholder="Nº 00000/2026" disabled="" oninput="mascararNumeroAno(this)">
+            </div>
+            <div class="termo-linha">
+              <input type="checkbox" onchange="alternarTermo(this,&#39;num_notificacao&#39;)"> <span class="lbl-termo">Notificação</span>
+              <input type="text" id="num_notificacao" name="num_notificacao" placeholder="Nº 00000/2026" disabled="" oninput="mascararNumeroAno(this)">
+            </div>
+            <div class="nota-campo">Lista reduzida, apenas para exemplo.</div>
+          </td>
+        </tr>
+        <tr><td colspan="4" style="font-size:11px;">(*) Preenchimento obrigatório</td></tr>
+      </tbody></table>
+      </div>
+      <div id="aviso_sem_infracao" class="nota-campo" style="display:none; padding:10px 4px; font-size:12.5px;">
+        Seção "Documentos Lavrados" ocultada — não se aplica a relatório sem infração.
+      </div>
+
+    </form>
+
+    <div class="texto-livre-rotulo">TEXTO DO RELATÓRIO <span>— campo de texto livre, editável no editor do SEI</span></div>
+    <div class="texto-livre-nota">
+      Esta parte <b>não integra o bloco de dados estruturados</b>. Corresponde à seção editável do documento no
+      editor do SEI, onde o servidor redige o texto técnico com os recursos usuais de edição (formatação, tabelas,
+      imagens). A simulação abaixo é apenas ilustrativa.
+    </div>
+    <div class="texto-livre">
+      <div class="texto-livre-barra">
+        <button type="button" onclick="document.execCommand('bold')" style="font-weight:700;">B</button>
+        <button type="button" onclick="document.execCommand('italic')" style="font-style:italic;">I</button>
+        <button type="button" onclick="document.execCommand('underline')" style="text-decoration:underline;">S</button>
+        <button type="button" onclick="document.execCommand('insertUnorderedList')">• Lista</button>
+        <span>simulação simplificada do editor do SEI</span>
+      </div>
+      <div id="texto_relatorio" contenteditable="true">
+        <p class="tl-titulo">INTRODUÇÃO</p>
+        <p>Em atendimento à demanda registrada no processo em referência, a equipe de fiscalização realizou ação fiscal no local indicado (...)</p>
+        <p class="tl-titulo">LOCALIZAÇÃO</p>
+        <p>Descrição do local e de suas características territoriais e ambientais relevantes, com referência às coordenadas informadas no bloco de dados (...)</p>
+        <p class="tl-titulo">DOS FATOS</p>
+        <p>Descrever a ação fiscal e tudo aquilo que se julgar relevante, podendo incluir fotografias, tabelas e outros elementos (...)</p>
+        <p class="tl-titulo">CONCLUSÃO E ENCAMINHAMENTOS</p>
+        <p>Síntese das constatações e dos encaminhamentos propostos (...)</p>
+      </div>
+    </div>
+
+    <div class="acoes-finais">
+      <div class="nota">Confira os dados antes de enviar. Depois do envio, o relatório é criado no processo indicado no topo,
+        com a tabela de dados protegida; o texto técnico é redigido no próprio SEI.</div>
+      <div class="botoes">
+        <button type="button" class="btn-verificar" onclick="verificarPreenchimento()">Verificar preenchimento</button>
+        <button type="button" class="btn-enviar" id="btn_enviar" onclick="iniciarEnvio()">Enviar e criar relatório no SEI</button>
+      </div>
+    </div>
+    <div id="status_envio" class="status-envio"></div>
+
+    <div id="painel_json" style="display:none; margin-top:20px; border:1px solid var(--borda-clara); border-radius:4px;">
+      <div style="background:var(--cinza-claro); padding:8px 10px; font-weight:700; font-size:12.5px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Dados estruturados que sairiam deste formulário</span>
+        <button type="button" onclick="document.getElementById(&#39;painel_json&#39;).style.display=&#39;none&#39;" style="width:auto; background:#666; color:#fff; border:none; border-radius:3px; padding:3px 9px; cursor:pointer;">fechar</button>
+      </div>
+      <pre id="saida_json" style="margin:0; padding:14px; font-size:11.5px; background:#1e1e1e; color:#9cdcfe; overflow:auto; max-height:340px;"></pre>
+    </div>
+  </div>
+
+<div id="modal_confirmar" class="modal-fundo">
+  <div class="modal pequeno">
+    <div class="modal-topo"><span>Confirmar criação do relatório no SEI</span><button type="button" onclick="fecharModal('modal_confirmar')">fechar</button></div>
+    <div class="modal-corpo">
+      O relatório será criado no processo e na unidade abaixo:
+      <div class="destaque">Processo <b id="conf_processo">—</b><br>Unidade <b id="conf_unidade">—</b><br>Tipo <b id="conf_tipo">—</b></div>
+      Depois de criado, a tabela de dados fica protegida no documento. Para corrigi-la antes da assinatura,
+      será preciso excluir o relatório e gerá-lo novamente a partir deste formulário.
+    </div>
+    <div class="modal-rodape">
+      <span></span>
+      <span style="display:flex; gap:8px;">
+        <button type="button" class="btn-verificar" onclick="fecharModal('modal_confirmar')">Cancelar</button>
+        <button type="button" class="btn-enviar" onclick="confirmarEnvio()">Confirmar e criar relatório</button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div id="modal_envio" class="modal-fundo">
+  <div class="modal pequeno">
+    <div class="modal-topo"><span>Criando o relatório no SEI</span><button type="button" id="btn_fechar_envio" onclick="fecharModal('modal_envio')" disabled>fechar</button></div>
+    <div class="modal-corpo">
+      <ul class="passos-envio" id="passos_envio">
+        <li>Conferindo o processo no SEI</li>
+        <li>Validando os dados no servidor</li>
+        <li>Criando o relatório no SEI, com o bloco de dados</li>
+        <li>Registrando os dados na base, vinculados ao documento</li>
+      </ul>
+      <div id="resultado_envio" style="display:none;" class="destaque"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal_mapa" class="modal-fundo">
+  <div class="modal">
+    <div class="modal-topo"><span>Marque o local da fiscalização</span><button type="button" onclick="fecharMapa()">fechar</button></div>
+    <div id="mapa"></div>
+    <div class="modal-rodape">
+      <span>Coordenada: <span id="coord_lida" class="coord-lida">clique no mapa</span></span>
+      <button type="button" class="btn-acao" id="btn_usar_coord" onclick="usarCoordenada()" disabled>Usar esta coordenada</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const VOCAB_ASSUNTO = {
+  'Ruído': { sem: ['Apuração de denúncia','Monitoramento','Outros'], com: ['Emissão acima do limite','Descumprimento de notificação','Outros'] },
+  'Vegetação': { sem: ['Apuração de denúncia','Vistoria','Outros'], com: ['Supressão sem autorização','Descumprimento de autorização','Outros'] },
+  'Resíduos': { sem: ['Apuração de denúncia','Monitoramento','Outros'], com: ['Descarte irregular','Atividade sem autorização','Outros'] }
+};
+
+const VOCAB_ATIVIDADE = {
+  'Ruído': ['Estabelecimento comercial','Evento','Outros'],
+  'Vegetação': ['Supressão de vegetação','Corte de árvores','Outros'],
+  'Resíduos': ['Comércio','Indústria','Outros']
+};
+
+const MUNICIPIOS = {
+  EA: ['Município Alfa','Município Beta','Município Gama'],
+  EB: ['Município Delta','Município Épsilon'],
+  EC: ['Município Zeta','Município Eta','Município Teta','Município Iota']
+};
+function atualizarMunicipios(){
+  const uf = document.getElementById('sel_uf').value;
+  const sel = document.getElementById('sel_municipio');
+  sel.innerHTML = uf ? '<option value="">Selecione...</option>' + paraOptions(MUNICIPIOS[uf])
+                     : '<option value="">Escolha a UF primeiro</option>';
+}
+function todosMunicipiosOptions(){
+  return Object.entries(MUNICIPIOS).map(([uf, l]) => l.map(m => `<option>${m} - ${uf}</option>`).join('')).join('');
+}
+
+const CAMPOS_SO_COM_INFRACAO = ['num_auto_infracao','descricao_infracao','nome_razao_social','documento'];
+
+function paraOptions(lista){
+  return lista.map(v => `<option>${v}</option>`).join('');
+}
+
+function atualizarCamposDependentes(){
+  const tematica = document.getElementById('sel_tematica').value;
+  const tipo = document.querySelector('input[name="tipo_relatorio"]:checked')?.value;
+  const selAssunto = document.getElementById('sel_assunto');
+  const selAtividade = document.getElementById('sel_atividade');
+  const blocoDoc = document.getElementById('bloco_documentos_lavrados');
+  const avisoSemInfracao = document.getElementById('aviso_sem_infracao');
+
+  if(!tematica){
+    selAssunto.innerHTML = '<option value="">Escolha a Temática e o Tipo de Relatório primeiro</option>';
+    selAtividade.innerHTML = '<option value="">Escolha a Temática primeiro</option>';
+  } else {
+    selAtividade.innerHTML = '<option value="">Selecione...</option>' + paraOptions(VOCAB_ATIVIDADE[tematica]);
+    if(!tipo){
+      selAssunto.innerHTML = '<option value="">Escolha o Tipo de Relatório</option>';
+    } else {
+      selAssunto.innerHTML = '<option value="">Selecione...</option>' + paraOptions(VOCAB_ASSUNTO[tematica][tipo]);
+    }
+  }
+
+  if(!tipo) return;
+  const mostrarDocumentos = (tipo === 'com');
+  blocoDoc.style.display = mostrarDocumentos ? '' : 'none';
+  avisoSemInfracao.style.display = mostrarDocumentos ? 'none' : '';
+  CAMPOS_SO_COM_INFRACAO.forEach(nome => {
+    const campo = document.querySelector(`[name="${nome}"]`);
+    if(campo) campo.required = mostrarDocumentos;
+  });
+}
+function carregarContextoSEI(){
+  document.getElementById('campo_diretoria').value = document.getElementById('ctx_unidade').textContent;
+  document.getElementById('campo_processo_sei').value = document.getElementById('ctx_processo').textContent;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  carregarContextoSEI();
+  atualizarCamposDependentes();
+  document.querySelectorAll('input[name="tipo_relatorio"]').forEach(r => r.addEventListener('change', atualizarCamposDependentes));
+});
+
+function atualizarSubcampoOrigem(){
+  const valor = document.getElementById('sel_origem_demanda').value;
+  const blocoRA = document.getElementById('subcampo_ra_origem');
+  const blocoUnid = document.getElementById('subcampo_unidade_origem');
+  const selRA = document.getElementById('sel_origem_demanda_ra');
+  const campoOutros = document.getElementById('outros_origem_demanda');
+
+  blocoRA.style.display = (valor === 'Prefeitura municipal') ? '' : 'none';
+  blocoUnid.style.display = (valor === 'Órgão/Outra unidade de fiscalização') ? '' : 'none';
+
+  const ehOutros = (valor === 'Outros' || valor === 'Órgão/Outra Unidade');
+  campoOutros.style.display = ehOutros ? '' : 'none';
+  campoOutros.required = ehOutros;
+  if(!ehOutros) campoOutros.value = '';
+
+  if(valor === 'Prefeitura municipal'){
+    selRA.innerHTML = '<option value="">Selecione o município...</option>' + todosMunicipiosOptions();
+  }
+}
+
+let participacaoSelecionados = [];
+
+function adicionarChipParticipacao(select){
+  const valor = select.value;
+  if(!valor || participacaoSelecionados.includes(valor)){
+    select.value = '';
+    return;
+  }
+  participacaoSelecionados.push(valor);
+  select.value = '';
+  renderizarChipsParticipacao();
+}
+
+function removerChipParticipacao(valor){
+  participacaoSelecionados = participacaoSelecionados.filter(v => v !== valor);
+  renderizarChipsParticipacao();
+}
+
+function renderizarChipsParticipacao(){
+  const container = document.getElementById('chips_participacao');
+  container.innerHTML = participacaoSelecionados.map(v =>
+    `<span class="chip">${v}<button type="button" onclick="removerChipParticipacao('${v.replace(/'/g,"\\'")}')" title="Remover">×</button></span>`
+  ).join('');
+
+  const envio = document.getElementById('sel_participacao_envio');
+  envio.innerHTML = participacaoSelecionados.map(v => `<option selected value="${v}">${v}</option>`).join('');
+
+  const marcouRA = participacaoSelecionados.includes('Prefeitura municipal');
+  const bloco = document.getElementById('subcampo_ra_participacao');
+  const selRAPart = document.querySelector('select[name="participacao_municipio"]');
+  bloco.style.display = marcouRA ? '' : 'none';
+  if(marcouRA && selRAPart.options.length === 0){
+    selRAPart.innerHTML = todosMunicipiosOptions();
+  }
+}
+
+function alternarOutros(idSelect, idCampoTexto){
+  const select = document.getElementById(idSelect);
+  const campo = document.getElementById(idCampoTexto);
+  const ehOutros = select.value === 'Outros';
+  campo.style.display = ehOutros ? '' : 'none';
+  campo.required = ehOutros;
+  if(!ehOutros) campo.value = '';
+}
+
+let contadorServidores = 1;
+function adicionarServidor(){
+  if(contadorServidores >= 6){
+    alert('Máximo de 6 servidores por equipe.');
+    return;
+  }
+  contadorServidores++;
+  const div = document.createElement('div');
+  div.className = 'equipe-linha';
+  div.innerHTML = `
+    <input type="text" class="campo-nome" name="servidor_${contadorServidores}_nome" placeholder="Nome (equipe)">
+    <input type="text" class="campo-matricula" name="servidor_${contadorServidores}_matricula" placeholder="Matrícula">
+    <button type="button" class="btn-remover-equipe" onclick="this.parentElement.remove()" title="Remover">×</button>
+  `;
+  document.getElementById('lista_equipe').appendChild(div);
+}
+
+function ajustarMascaraDocumento(){
+  const pf = document.querySelector('input[name="tipo_doc"][value="PF"]').checked;
+  const campo = document.getElementById('campo_documento');
+  campo.value = '';
+  campo.placeholder = pf ? '000.000.000-00' : '00.000.000/0000-00';
+  campo.maxLength = pf ? 14 : 18;
+
+  const campoFantasia = document.getElementById('campo_nome_fantasia');
+  campoFantasia.disabled = pf;
+  if(pf) campoFantasia.value = '';
+}
+function mascararDocumento(el){
+  const pf = document.querySelector('input[name="tipo_doc"][value="PF"]').checked;
+  let v = el.value.replace(/\D/g,'');
+  if(pf){
+    v = v.slice(0,11);
+    v = v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  } else {
+    v = v.slice(0,14);
+    v = v.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3')
+         .replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d{1,2})$/,'$1-$2');
+  }
+  el.value = v;
+}
+let datasAcaoSelecionadas = [];
+
+function adicionarDataAcao(){
+  const input = document.getElementById('input_data_acao');
+  const valor = input.value;
+  if(!valor) return;
+  if(datasAcaoSelecionadas.includes(valor)){ input.value=''; return; }
+  datasAcaoSelecionadas.push(valor);
+  datasAcaoSelecionadas.sort();
+  input.value = '';
+  renderizarChipsDatas();
+}
+
+function removerChipData(valor){
+  datasAcaoSelecionadas = datasAcaoSelecionadas.filter(v => v !== valor);
+  renderizarChipsDatas();
+}
+
+function renderizarChipsDatas(){
+  const container = document.getElementById('chips_datas_acao');
+  container.innerHTML = datasAcaoSelecionadas.map(v => {
+    const [ano, mes, dia] = v.split('-');
+    return `<span class="chip">${dia}/${mes}/${ano}<button type="button" onclick="removerChipData('${v}')" title="Remover">×</button></span>`;
+  }).join('');
+
+  const envio = document.getElementById('sel_datas_acao_envio');
+  envio.innerHTML = datasAcaoSelecionadas.map(v => `<option selected value="${v}">${v}</option>`).join('');
+}
+
+function mascararCEP(el){
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if(v.length > 5) v = v.replace(/(\d{5})(\d{1,3})/, '$1-$2');
+  el.value = v;
+}
+
+function alternarLocalMesmoEndereco(){
+  const marcado = document.getElementById('chk_mesmo_endereco').checked;
+  const campoLocal = document.getElementById('campo_local_acao_fiscal');
+  const campoCepLocal = document.getElementById('campo_cep_local');
+
+  campoLocal.readOnly = marcado;
+  campoCepLocal.readOnly = marcado;
+  campoLocal.style.background = marcado ? '#f0f0f0' : '';
+  campoCepLocal.style.background = marcado ? '#f0f0f0' : '';
+
+  if(marcado){
+    sincronizarLocalComEndereco();
+  }
+}
+
+function sincronizarLocalComEndereco(){
+  if(!document.getElementById('chk_mesmo_endereco').checked) return;
+  document.getElementById('campo_local_acao_fiscal').value = document.getElementById('campo_endereco_fiscalizado').value;
+  document.getElementById('campo_cep_local').value = document.getElementById('campo_cep_fiscalizado').value;
+}
+
+function mascararTelefone(el){
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length > 10){
+    v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  } else {
+    v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+  }
+  el.value = v.trim();
+}
+function mascararNumeroAno(el){
+  let v = el.value.replace(/\D/g,'').slice(0,9);
+  if(v.length > 5) v = v.replace(/(\d{5})(\d{1,4})/, '$1/$2');
+  el.value = v;
+}
+function mascararMoeda(el){
+  let v = el.value.replace(/\D/g,'');
+  v = (parseInt(v||'0',10)/100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  el.value = 'R$ ' + v;
+}
+function alternarTermo(chk, idCampo){
+  const campo = document.getElementById(idCampo);
+  campo.disabled = !chk.checked;
+  if(!chk.checked) campo.value = '';
+}
+function alternarValorMulta(){
+  const tipo = document.getElementById('tipo_multa').value;
+  const campo = document.getElementById('valor_multa');
+  campo.disabled = !tipo;
+  if(!tipo) campo.value = '';
+}
+function alternarValorMultaPorCheckbox(chk){
+  const select = document.getElementById('tipo_multa');
+  if(chk.checked){
+    select.value = chk.value === 'Multa simples' ? 'simples' : 'diaria';
+  } else {
+    select.value = '';
+  }
+  alternarValorMulta();
+}
+
+function consultarSistemaExterno(){
+  const id = document.getElementById('campo_id_externo').value.trim();
+  const st = document.getElementById('status_autos');
+  if(!id){ st.className = 'status-autos erro'; st.textContent = 'Informe o identificador do registro (nesta demonstração, use 1234).'; return; }
+  if(id !== '1234'){ st.className = 'status-autos erro'; st.textContent = 'Registro ' + id + ' não encontrado. Nesta demonstração, apenas o identificador 1234 retorna dados.'; return; }
+  st.className = 'status-autos'; st.textContent = 'Consultando (simulação)...';
+  setTimeout(() => {
+    aplicarDadosExternos({
+      tipo_pessoa: 'PJ',
+      nome_razao_social: 'EMPRESA EXEMPLO LTDA',
+      documento: '00.000.000/0001-00',
+      nome_fantasia: 'EXEMPLO COMÉRCIO',
+      telefone: '(00) 90000-0000',
+      email: 'contato@exemplo.com',
+      endereco: 'Rua Exemplo, 100, Município Alfa - EA',
+      cep: '00000-000'
+    });
+    const agora = new Date().toLocaleString('pt-BR');
+    st.className = 'status-autos ok';
+    st.textContent = 'Registro 1234 encontrado (simulação, dados fictícios): a QUALIFICAÇÃO DO FISCALIZADO foi preenchida em ' + agora + '. Confira os campos destacados em verde abaixo.';
+  }, 600);
+}
+
+function marcarAuto(el){
+  if(!el) return;
+  el.classList.add('veio-autos');
+  el.title = 'Preenchido pela simulação de consulta ao sistema externo (demonstração)';
+}
+
+function aplicarDadosExternos(a){
+  document.querySelector('input[name="tipo_doc"][value="' + a.tipo_pessoa + '"]').checked = true;
+  ajustarMascaraDocumento();
+  const set = (sel, v) => { const el = document.querySelector(sel); if(el && v){ el.value = v; marcarAuto(el); } };
+  set('#campo_nome_razao_social', a.nome_razao_social);
+  set('#campo_documento', a.documento);
+  set('#campo_nome_fantasia', a.nome_fantasia);
+  set('input[name="telefone"]', a.telefone);
+  set('input[name="email"]', a.email);
+  set('#campo_endereco_fiscalizado', a.endereco);
+  set('#campo_cep_fiscalizado', a.cep);
+  marcarAuto(document.querySelector('input[name="tipo_doc"][value="' + a.tipo_pessoa + '"]').parentElement);
+  if(typeof sincronizarLocalComEndereco === 'function') sincronizarLocalComEndereco();
+}
+
+let mapa = null, marcador = null, coordTemp = null;
+const LIMITES_AREA = { latMin: -34, latMax: 5.3, lonMin: -74, lonMax: -34 };
+
+function preencherCoordenada(lat, lon, origem){
+  const elLat = document.querySelector('input[name="lat"]');
+  const elLon = document.querySelector('input[name="lon"]');
+  elLat.value = Number(lat).toFixed(6);
+  elLon.value = Number(lon).toFixed(6);
+  [elLat, elLon].forEach(el => el.classList.toggle('veio-autos', origem === 'autos'));
+  document.getElementById('coord_origem').textContent =
+    origem === 'autos' ? 'Coordenada preenchida pela simulação de consulta ao sistema externo. Use o mapa para conferir ou ajustar.'
+                        : 'Coordenada marcada no mapa. Pode ser ajustada por digitação.';
+}
+
+function carregarLeaflet(cb){
+  if(window.L) return cb();
+  const s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.onload = cb;
+  s.onerror = () => alert('Não foi possível carregar o mapa (sem acesso à internet). Digite as coordenadas.');
+  document.head.appendChild(s);
+}
+
+function abrirMapa(){
+  document.getElementById('modal_mapa').style.display = 'flex';
+  carregarLeaflet(() => {
+    const lat = parseFloat(document.querySelector('input[name="lat"]').value);
+    const lon = parseFloat(document.querySelector('input[name="lon"]').value);
+    const temCoord = !isNaN(lat) && !isNaN(lon);
+    if(!mapa){
+      mapa = L.map('mapa');
+      const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagem: Esri' });
+      const ruas = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' });
+      satelite.addTo(mapa);
+      L.control.layers({ 'Satélite': satelite, 'Ruas': ruas }).addTo(mapa);
+      mapa.on('click', e => marcarPonto(e.latlng.lat, e.latlng.lng));
+    }
+    mapa.invalidateSize();
+    if(temCoord){ mapa.setView([lat, lon], 17); marcarPonto(lat, lon); }
+    else { mapa.setView([-14.2, -51.9], 4); }
+  });
+}
+
+function marcarPonto(lat, lon){
+  coordTemp = { lat, lon };
+  if(marcador) marcador.setLatLng([lat, lon]); else marcador = L.marker([lat, lon]).addTo(mapa);
+  const dentro = lat >= LIMITES_AREA.latMin && lat <= LIMITES_AREA.latMax && lon >= LIMITES_AREA.lonMin && lon <= LIMITES_AREA.lonMax;
+  document.getElementById('coord_lida').textContent = lat.toFixed(6) + ', ' + lon.toFixed(6) + (dentro ? '' : '  (fora do bounding box de validade definido para o documento)');
+  document.getElementById('btn_usar_coord').disabled = !dentro;
+}
+
+function usarCoordenada(){
+  if(!coordTemp) return;
+  preencherCoordenada(coordTemp.lat, coordTemp.lon, 'mapa');
+  fecharMapa();
+}
+
+function fecharMapa(){ document.getElementById('modal_mapa').style.display = 'none'; }
+
+function validarFormulario(){
+  const form = document.getElementById('formRel');
+  const tipo = document.querySelector('input[name="tipo_relatorio"]:checked')?.value;
+  const penalidades = document.querySelectorAll('input[name="penalidade"]:checked');
+  const notaPenalidade = document.getElementById('nota_penalidade');
+  let ok = form.reportValidity();
+  if(tipo === 'com' && penalidades.length === 0){
+    notaPenalidade.style.color = 'var(--erro)';
+    notaPenalidade.textContent = 'Selecione ao menos uma penalidade — campo obrigatório.';
+    ok = false;
+  } else {
+    notaPenalidade.style.color = '#666';
+    notaPenalidade.textContent = 'Selecione ao menos uma penalidade.';
+  }
+  return ok;
+}
+
+function mostrarStatus(tipo, texto){
+  const el = document.getElementById('status_envio');
+  el.className = 'status-envio ' + tipo;
+  el.textContent = texto;
+}
+
+function verificarPreenchimento(){
+  if(validarFormulario()) mostrarStatus('ok', 'Preenchimento completo: todos os campos obrigatórios foram informados.');
+  else mostrarStatus('erro', 'Há campos obrigatórios pendentes. Os campos estão destacados no formulário.');
+}
+
+function fecharModal(id){ document.getElementById(id).style.display = 'none'; }
+
+function iniciarEnvio(){
+  if(!validarFormulario()){
+    mostrarStatus('erro', 'Não foi possível enviar: há campos obrigatórios pendentes.');
+    return;
+  }
+  const tipo = document.querySelector('input[name="tipo_relatorio"]:checked')?.value;
+  document.getElementById('conf_processo').textContent = document.getElementById('ctx_processo').textContent;
+  document.getElementById('conf_unidade').textContent = document.getElementById('ctx_unidade').textContent;
+  document.getElementById('conf_tipo').textContent = tipo === 'com' ? 'Relatório com infração' : 'Relatório sem infração';
+  document.getElementById('modal_confirmar').style.display = 'flex';
+}
+
+function confirmarEnvio(){
+  fecharModal('modal_confirmar');
+  const itens = document.querySelectorAll('#passos_envio li');
+  const res = document.getElementById('resultado_envio');
+  itens.forEach(li => li.className = '');
+  res.style.display = 'none';
+  document.getElementById('btn_fechar_envio').disabled = true;
+  document.getElementById('btn_enviar').disabled = true;
+  document.getElementById('modal_envio').style.display = 'flex';
+
+  let i = 0;
+  const avancar = () => {
+    if(i > 0) itens[i-1].className = 'feito';
+    if(i < itens.length){ itens[i].className = 'ativo'; i++; setTimeout(avancar, 700); return; }
+    const processo = document.getElementById('ctx_processo').textContent;
+    res.innerHTML = '<b>Relatório criado no processo ' + processo + '</b> (simulação).<br>' +
+      'Documento SEI nº <b>000000000</b>. A tabela de dados já está na seção protegida; ' +
+      'o próximo passo é redigir o texto técnico e assinar no SEI.<br>' +
+      '<a href="#" onclick="return false;">Abrir o relatório no SEI</a>';
+    res.style.display = 'block';
+    document.getElementById('btn_fechar_envio').disabled = false;
+    mostrarStatus('ok', 'Relatório criado no SEI (simulação). Os dados ficam registrados na base, vinculados ao número do documento.');
+  };
+  avancar();
+}
+
+function mostrarJSON(){
+  const form = document.getElementById('formRel');
+  const dados = {};
+  new FormData(form).forEach((valor, chave) => {
+    if(dados[chave] !== undefined){
+      if(!Array.isArray(dados[chave])) dados[chave] = [dados[chave]];
+      dados[chave].push(valor);
+    } else {
+      dados[chave] = valor;
+    }
+  });
+  dados['penalidade_aplicada'] = Array.from(document.querySelectorAll('input[name="penalidade"]:checked')).map(c => c.value);
+  delete dados['penalidade'];
+  document.getElementById('saida_json').textContent = JSON.stringify(dados, null, 2);
+  document.getElementById('painel_json').style.display = 'block';
+  document.getElementById('painel_json').scrollIntoView({behavior:'smooth'});
+}
+</script>
+
+
+</body></html>
